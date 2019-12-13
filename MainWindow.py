@@ -6,9 +6,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-
         self.initUI()
-
 
     def initUI(self):
         self.interface = Interface()

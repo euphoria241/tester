@@ -1,5 +1,6 @@
 import json
 import random
+import sqlite3
 from Question import Question
 
 class TestTicket:
@@ -9,15 +10,25 @@ class TestTicket:
         self.generate_questions()
     
     def generate_questions(self):
-        questionsFile = open('questions.json', 'r')
-        questionsJSON = questionsFile.read()
-        questionsList = random.choices(json.loads(questionsJSON), k=6)
+        connection = sqlite3.connect("test.db")
+        cursor = connection.cursor()
+        request = "select * from questions"
+        cursor.execute(request)
+        fetched_questions = cursor.fetchall()
+        questionsList = random.sample(fetched_questions, k=12)
+
         for question in questionsList:
-            obj = Question(question['Question'], question['Options'], question['RightAnswer'])
-            self.questions.append(obj)
+            if len(question[2]):
+                obj = Question(question[1], question[2].split(", "), question[3])
+                self.questions.append(obj)
+            else:
+                obj = Question(question[1], [], question[3])
+                self.questions.append(obj)
+
         self.currentQuestion = 0
         self.nextQuestion = 1
         self.questionsLeft = len(self.questions)
+        connection.close()
         
     def find_next_question(self):
         if self.questionsLeft != 0:

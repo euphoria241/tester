@@ -1,6 +1,7 @@
 # This Python file uses the following encoding: utf-8
 import sys
-from PyQt5.QtWidgets import (QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QApplication, QLabel, QRadioButton, QProgressBar, QLineEdit)
+import time
+from PyQt5.QtWidgets import (QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QApplication, QLabel, QRadioButton, QProgressBar, QLineEdit,qApp, QComboBox)
 from PyQt5.QtCore import QTimer
 from TestTicket import TestTicket
 
@@ -13,19 +14,26 @@ class Interface(QWidget):
         self.initUI()
 
     def initUI(self):
+        self.startButton = QPushButton("Начать тест")
         self.answerButton = QPushButton("Ответить")
         self.skipButton = QPushButton("Пропустить")
         self.endButton = QPushButton("Завершить")
+
+        self.testsComboBox = QComboBox()
+        self.testsComboBox.addItems(["test1", "test2", "test3"])
+
         self.answerButton.clicked.connect(self.answer_button_handler)
         self.skipButton.clicked.connect(self.skip_button_handel)
         self.endButton.clicked.connect(self.end_button_handler)
+        self.startButton.clicked.connect(self.start_button_handler)
+
         self.hbox = QHBoxLayout()
         self.hbox.addStretch(1)
         self.hbox.addWidget(self.skipButton)
         self.hbox.addWidget(self.answerButton)
         self.hbox.addWidget(self.endButton)
 
-        self.qbox= QVBoxLayout()  
+        self.qbox= QVBoxLayout()
         self.label = QLabel()
         self.radio1 = QRadioButton()
         self.radio2 = QRadioButton()
@@ -39,34 +47,53 @@ class Interface(QWidget):
         self.qbox.addWidget(self.radio3)
         self.qbox.addWidget(self.radio4)
         self.qbox.addWidget(self.line)
+        self.qbox.addWidget(self.testsComboBox)
+        self.qbox.addWidget(self.startButton)
+        self.vbox.addStretch(1)
         self.vbox.addLayout(self.qbox)
         self.vbox.addStretch(1)
         self.vbox.addLayout(self.hbox)
-
+        self.vbox.setContentsMargins(30,30,30,30)
         self.setLayout(self.vbox)
-
         self.label.hide()
         self.radio1.hide()
         self.radio2.hide()
         self.radio3.hide()
         self.radio4.hide()
         self.line.hide()
+        self.answerButton.hide()
+        self.skipButton.hide()
+        self.endButton.hide()
 
-        # self.pb = QProgressBar()
-        # self.pb.setMaximum(600)
-        # self.pb.setMinimum(0)
-        # self.pb.setValue(0)
-        # self.qbox.addWidget(self.pb)
+    #     self.pb = QProgressBar()
+    #     self.pb.setMaximum(600)
+    #     self.pb.setMinimum(0)
+    #     self.pb.setValue(0)
+    #     self.qbox.addWidget(self.pb)
 
-        # self.timer = QTimer()
-        # self.timer.timeout.connect(self.on_timer)
-        # self.timer.start(1000)
+    #     self.timer = QTimer()
+    #     self.timer.timeout.connect(self.on_timer)
+    #     self.timer.start(1000)
 
     # def on_timer(self):
     #     current_value = self.pb.value() + 1
     #     self.pb.setValue(current_value)
     #     if current_value == 600:
     #         self.timer.stop()
+    def get_tests(self):
+        
+        pass
+
+    def hide_everything(self):
+        pass
+
+    def start_button_handler(self):
+        self.startButton.hide()
+        self.testsComboBox.hide()
+        self.skipButton.show()
+        self.endButton.show()
+        self.answerButton.show()
+        self.skip_button_handel()
     def answer_button_handler(self):
         pass
 
@@ -80,14 +107,14 @@ class Interface(QWidget):
         tempQuestion = self.ticket.get_next_question_without_answer()
         if tempQuestion != -1:
             if len(tempQuestion.options) == 4:
-                self.line.hide()
+                self.label.hide()
                 self.radio1.hide()
                 self.radio2.hide()
                 self.radio3.hide()
                 self.radio4.hide()
                 self.line.hide()
-
                 self.label.setText(tempQuestion.title)
+
                 self.radio1.setText(tempQuestion.options[0])
                 self.radio2.setText(tempQuestion.options[1])
                 self.radio3.setText(tempQuestion.options[2])
@@ -98,19 +125,19 @@ class Interface(QWidget):
                 self.radio2.show()
                 self.radio3.show()
                 self.radio4.show()
-
+                qApp.processEvents()
                 self.update()
             elif len(tempQuestion.options) == 0:
-                self.line.hide()
+                self.label.hide()
                 self.radio1.hide()
                 self.radio2.hide()
                 self.radio3.hide()
                 self.radio4.hide()
                 self.line.hide()
-
                 self.label.setText(tempQuestion.title)
                 self.label.show()
                 self.line.show()
+                qApp.processEvents()
 
                 self.update()
     
