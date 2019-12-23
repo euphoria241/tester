@@ -53,7 +53,6 @@ class TestTicket:
     def set_answer(self, answer):
         self.questions[self.currentQuestion].actualAnswer = answer
         self.questionsLeft -= 1
-        self.find_next_question()
 
     def get_current_question(self):
         return self.questions[self.currentQuestion]

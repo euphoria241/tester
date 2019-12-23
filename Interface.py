@@ -2,7 +2,7 @@
 import sys
 import time
 import sqlite3
-from PyQt5.QtWidgets import (QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QApplication, QLabel, QRadioButton, QProgressBar, QLineEdit,qApp, QComboBox, QButtonGroup)
+from PyQt5.QtWidgets import (QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QApplication, QLabel, QRadioButton, QProgressBar, QLineEdit,qApp, QComboBox, QButtonGroup,QMessageBox)
 from PyQt5.QtCore import QTimer
 from TestTicket import TestTicket
 
@@ -37,6 +37,11 @@ class Interface(QWidget):
         self.radio2 = QRadioButton()
         self.radio3 = QRadioButton()
         self.radio4 = QRadioButton()
+        self.radioGroup = QButtonGroup()
+        self.radioGroup.addButton(self.radio1, 0)
+        self.radioGroup.addButton(self.radio2, 1)
+        self.radioGroup.addButton(self.radio3, 2)
+        self.radioGroup.addButton(self.radio4, 3)
         self.line = QLineEdit(self)
         self.vbox = QVBoxLayout()
         self.qbox.addWidget(self.label)
@@ -77,7 +82,7 @@ class Interface(QWidget):
         cursor.execute(request)
         fetched_tests = cursor.fetchall()
         connection.close()
-        
+
         self.testsComboBox = QComboBox()
         for test in fetched_tests:
             self.testsComboBox.addItem(str(test[0]) + " " + test[1] + " Семестр " + str(test[2]) + " Часть " + str(test[3]))
@@ -128,11 +133,12 @@ class Interface(QWidget):
         # self.skip_button_handel()
 
     def answer_button_handler(self):
-        if(self.radio1.isChecked() or self.radio2.isChecked() or self.radio3.isChecked() or self.radio4.isChecked() or (self.line.text != '')):
-            if (self.line.text != ''):
+        if(self.radio1.isChecked() or self.radio2.isChecked() or self.radio3.isChecked() or self.radio4.isChecked() or (self.line.text() != '')):
+            if (self.line.text() != ''):
                 self.ticket.set_answer(self.line.text())
                 print(self.line.text())
                 print("LINE Written - ", self.line.text())
+                self.line.clear()
             elif(self.radio1.isChecked()):
                 self.ticket.set_answer(self.radio1.text())
                 print("BUT1 Written - ", self.radio1.text())
@@ -148,7 +154,12 @@ class Interface(QWidget):
                 print("BUT4 Written - ", self.radio4.text())                
             self.skip_button_handel()
         else:
-            print("No ANSWER!")
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("Ошибка")
+            msg.setText("Выберибе или введите вариант ответа!")
+            msg.addButton('Отмена', QMessageBox.RejectRole)
+            msg.exec()
 
     def end_test(self):
         self.label.hide()
@@ -173,22 +184,35 @@ class Interface(QWidget):
 
     def skip_button_handel(self):
         tempQuestion = self.ticket.get_next_question_without_answer()
-        # print(tempQuestion.title)
+        #check if there are any questions left
         if tempQuestion != -1:
+            #hide everything
+            self.label.hide()
+            self.radio1.hide()
+            self.radio2.hide()
+            self.radio3.hide()
+            self.radio4.hide()
+            self.line.hide()
+            #clear everything
+            self.line.clear()
+            self.radioGroup.setExclusive(False)
+            self.radio1.setChecked(False)
+            self.radio2.setChecked(False)
+            self.radio3.setChecked(False)
+            self.radio4.setChecked(False)
+            self.radioGroup.setExclusive(True)
+            #print current result
+            print("Current result is - ", self.ticket.get_result())  
+            #fill form with new question
             if len(tempQuestion.options) == 4:
-                self.label.hide()
-                self.radio1.hide()
-                self.radio2.hide()
-                self.radio3.hide()
-                self.radio4.hide()
-                self.line.hide()
+
                 self.label.setText(tempQuestion.title)
 
                 self.radio1.setText(tempQuestion.options[0])
                 self.radio2.setText(tempQuestion.options[1])
                 self.radio3.setText(tempQuestion.options[2])
                 self.radio4.setText(tempQuestion.options[3])
-                print("Current result is - ", self.ticket.get_result())                
+                              
                 self.label.show()
                 self.radio1.show()
                 self.radio2.show()
@@ -198,6 +222,7 @@ class Interface(QWidget):
                 qApp.processEvents()
                 self.update()
             elif len(tempQuestion.options) == 0:
+                self.line.clear()
                 self.label.hide()
                 self.radio1.hide()
                 self.radio2.hide()
