@@ -12,9 +12,9 @@ class MainWindow(QMainWindow):
         self.interface = Interface()
         self.setCentralWidget(self.interface)
         self.setWindowTitle('Тесты Python')
-        self.setGeometry(300, 300, 500, 450)
+        self.setFixedSize(600,500)
+        # self.setGeometry(300, 300, 500, 450)
         self.show()
-
 
 if __name__ == '__main__':
 

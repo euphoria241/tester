@@ -5,26 +5,28 @@ from Question import Question
 
 class TestTicket:
 
-    def __init__(self):
+    def __init__(self, test_topic):
         self.questions = []
+        self.topicId = test_topic.split(' ')[0]
         self.generate_questions()
     
     def generate_questions(self):
         connection = sqlite3.connect("test.db")
         cursor = connection.cursor()
-        request = "select * from questions"
-        cursor.execute(request)
+        request = "select * from questions where test_id =?"
+        cursor.execute(request, (self.topicId,))
         fetched_questions = cursor.fetchall()
-        questionsList = random.sample(fetched_questions, k=12)
+        questionsList = random.sample(fetched_questions, k=10)
 
+        numerator = 1
         for question in questionsList:
             if len(question[2]):
-                obj = Question(question[1], question[2].split(", "), question[3])
+                obj = Question(str(numerator) + ". " +  question[1], question[2].split(", "), question[3])
                 self.questions.append(obj)
             else:
-                obj = Question(question[1], [], question[3])
+                obj = Question(str(numerator) + ". " + question[1], [], question[3])
                 self.questions.append(obj)
-
+            numerator += 1
         self.currentQuestion = 0
         self.nextQuestion = 1
         self.questionsLeft = len(self.questions)
@@ -62,3 +64,10 @@ class TestTicket:
             return self.questions[index]
         else:
             return -1
+
+    def get_result(self):
+        result = 0
+        for question in self.questions:
+            if question.actualAnswer == question.rightAnswer:
+                result += 1
+        return result
