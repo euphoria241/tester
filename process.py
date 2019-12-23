@@ -35,10 +35,12 @@ class Check_Box(object):
                     if Check_Box.kol_blacklist == 0:
                         Check_Box.kol_blacklist+=1
                     #print(i)
-                    os.kill(int(j[1]),signal.SIGTERM) 
+                    try:
+                        os.kill(int(j[1]),signal.SIGTERM)
+                    except  PermissionError:
+                        return 3
         if Check_Box.kol_blacklist==1:
             return 1
         return 0
 c = Check_Box()
-while(1):
-    c.check()
+print(c.check())
