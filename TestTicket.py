@@ -5,9 +5,9 @@ from Question import Question
 
 class TestTicket:
 
-    def __init__(self, test_topic):
+    def __init__(self, test_id):
         self.questions = []
-        self.topicId = test_topic.split(' ')[0]
+        self.topicId = test_id
         self.generate_questions()
     
     def generate_questions(self):
@@ -49,6 +49,17 @@ class TestTicket:
             return self.currentQuestion
         else:
             return -1
+
+    def get_test_time(self):
+        connection = sqlite3.connect("test.db")
+        cursor = connection.cursor()
+        request = "select time from tests where test_id =?"
+        cursor.execute(request, (self.topicId,))
+        fetched_time = cursor.fetchone()
+        
+        connection.close()
+        return fetched_time[0]
+
 
     def set_answer(self, answer):
         self.questions[self.currentQuestion].actualAnswer = answer

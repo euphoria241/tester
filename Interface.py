@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import (QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QAp
 from PyQt5.QtCore import QTimer
 from TestTicket import TestTicket
 
-
 class Interface(QWidget):
 
     def __init__(self):
@@ -15,18 +14,21 @@ class Interface(QWidget):
 
     def initUI(self):
         self.startButton = QPushButton("Начать тест")
+        self.get_tests()
+        self.startButton.clicked.connect(self.start_button_handler)
+
         self.answerButton = QPushButton("Ответить")
         self.skipButton = QPushButton("Пропустить")
         self.endButton = QPushButton("Завершить")
-
-        self.get_tests()
-
         self.answerButton.clicked.connect(self.answer_button_handler)
         self.skipButton.clicked.connect(self.skip_button_handel)
         self.endButton.clicked.connect(self.end_button_handler)
-        self.startButton.clicked.connect(self.start_button_handler)
 
         self.hbox = QHBoxLayout()
+        self.timeLeftTitle = QLabel("Оставшееся время: ")
+        self.timeLeft = QLabel()
+        self.hbox.addWidget(self.timeLeftTitle)
+        self.hbox.addWidget(self.timeLeft)
         self.hbox.addStretch(1)
         self.hbox.addWidget(self.skipButton)
         self.hbox.addWidget(self.answerButton)
@@ -68,13 +70,21 @@ class Interface(QWidget):
         self.answerButton.hide()
         self.skipButton.hide()
         self.endButton.hide()
+        self.timeLeftTitle.hide()
+        self.timeLeft.hide()
 
     def on_timer(self):
-        current_value = self.pb.value() + 1
-        self.pb.setValue(current_value)
-        if current_value == 600:
+        self.testTime -= 1
+        minutes = self.testTime // 60
+        seconds = self.testTime % 60
+        if len(str(seconds)) != 1:
+            self.timeLeft.setText(str(minutes) + ":" + str(seconds))
+        else:
+            self.timeLeft.setText(str(minutes) + ":0" + str(seconds))
+        if self.testTime <= 0:
             self.timer.stop()
-            
+            self.end_test()
+
     def get_tests(self):
         connection = sqlite3.connect("test.db")
         cursor = connection.cursor()
@@ -91,21 +101,22 @@ class Interface(QWidget):
         pass
 
     def start_button_handler(self):
-        self.ticket = TestTicket(self.testsComboBox.currentText())
+        self.ticket = TestTicket(self.testsComboBox.currentText().split(' ')[0])
+        self.testTime = self.ticket.get_test_time()
         self.startButton.hide()
         self.testsComboBox.hide()
         self.skipButton.show()
         self.endButton.show()
         self.answerButton.show()
-        # self.pb = QProgressBar()
-        # self.pb.setMaximum(600)
-        # self.pb.setMinimum(0)
-        # self.pb.setValue(0)
-        # self.qbox.addWidget(self.pb)
-
-        # self.timer = QTimer()
-        # self.timer.timeout.connect(self.on_timer)
-        # self.timer.start(1000)6
+        self.timeLeft.show()
+        self.timeLeftTitle.show()
+        self.timeLeft.setText(str(self.testTime // 60) + ":" + str(self.testTime % 60) + "0")
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.on_timer)
+        self.timer.start(1000)
+        qApp.processEvents()
+        self.update()
+        
         firstQuestion = self.ticket.get_current_question()
         if len(firstQuestion.options) == 4:
             self.label.setText(firstQuestion.title)
@@ -171,7 +182,8 @@ class Interface(QWidget):
         self.skipButton.hide()
         self.answerButton.hide()
         self.endButton.hide()
-        # self.pb.hide()
+        self.timeLeftTitle.hide()
+        self.timeLeft.hide()
         self.resultLabel = QLabel()
         resultString = "Your result is "+ str(self.ticket.get_result())+" of 10!"
         self.resultLabel.setText(resultString)
@@ -200,41 +212,27 @@ class Interface(QWidget):
             self.radio2.setChecked(False)
             self.radio3.setChecked(False)
             self.radio4.setChecked(False)
-            self.radioGroup.setExclusive(True)
+            self.radioGroup.setExclusive(True) 
             #print current result
             print("Current result is - ", self.ticket.get_result())  
             #fill form with new question
             if len(tempQuestion.options) == 4:
-
                 self.label.setText(tempQuestion.title)
-
                 self.radio1.setText(tempQuestion.options[0])
                 self.radio2.setText(tempQuestion.options[1])
                 self.radio3.setText(tempQuestion.options[2])
                 self.radio4.setText(tempQuestion.options[3])
-                              
+              
                 self.label.show()
                 self.radio1.show()
                 self.radio2.show()
                 self.radio3.show()
                 self.radio4.show()
-
-                qApp.processEvents()
-                self.update()
             elif len(tempQuestion.options) == 0:
-                self.line.clear()
-                self.label.hide()
-                self.radio1.hide()
-                self.radio2.hide()
-                self.radio3.hide()
-                self.radio4.hide()
-                self.line.hide()
                 self.label.setText(tempQuestion.title)
                 self.label.show()
                 self.line.show()
-                print("Current result is - ", self.ticket.get_result())
-                qApp.processEvents()
-
-                self.update()
+            qApp.processEvents()
+            self.update()
         elif tempQuestion == -1:
             self.end_test()
