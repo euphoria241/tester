@@ -2,7 +2,7 @@
 import sys
 import time
 import sqlite3
-from PyQt5.QtWidgets import (QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QApplication, QLabel, QRadioButton, QProgressBar, QLineEdit,qApp, QComboBox, QButtonGroup,QMessageBox)
+from PyQt5.QtWidgets import (QWidget,QTextEdit, QPushButton, QHBoxLayout, QVBoxLayout, QApplication, QLabel, QRadioButton, QProgressBar, QLineEdit,qApp, QComboBox, QButtonGroup,QMessageBox)
 from PyQt5.QtCore import QTimer
 from TestTicket import TestTicket
 
@@ -13,20 +13,34 @@ class Interface(QWidget):
         self.initUI()
 
     def initUI(self):
+        # starting screen
         self.startButton = QPushButton("Начать тест")
         self.get_tests()
         self.startButton.clicked.connect(self.start_button_handler)
 
+        # test screen
+        self.label = QLabel()
+        self.radio1 = QRadioButton()
+        self.radio2 = QRadioButton()
+        self.radio3 = QRadioButton()
+        self.radio4 = QRadioButton()
+        self.line = QTextEdit()
+        self.line.setFixedWidth(400)
+        self.line.setFixedHeight(100)
+        self.timeLeftTitle = QLabel("Оставшееся время: ")
+        self.timeLeft = QLabel()
         self.answerButton = QPushButton("Ответить")
         self.skipButton = QPushButton("Пропустить")
         self.endButton = QPushButton("Завершить")
         self.answerButton.clicked.connect(self.answer_button_handler)
         self.skipButton.clicked.connect(self.skip_button_handel)
         self.endButton.clicked.connect(self.end_button_handler)
+        
+        # final screen
+        self.resultLabel = QLabel()
 
         self.hbox = QHBoxLayout()
-        self.timeLeftTitle = QLabel("Оставшееся время: ")
-        self.timeLeft = QLabel()
+        
         self.hbox.addWidget(self.timeLeftTitle)
         self.hbox.addWidget(self.timeLeft)
         self.hbox.addStretch(1)
@@ -34,17 +48,12 @@ class Interface(QWidget):
         self.hbox.addWidget(self.answerButton)
         self.hbox.addWidget(self.endButton)
         self.qbox= QVBoxLayout()
-        self.label = QLabel()
-        self.radio1 = QRadioButton()
-        self.radio2 = QRadioButton()
-        self.radio3 = QRadioButton()
-        self.radio4 = QRadioButton()
+        
         self.radioGroup = QButtonGroup()
         self.radioGroup.addButton(self.radio1, 0)
         self.radioGroup.addButton(self.radio2, 1)
         self.radioGroup.addButton(self.radio3, 2)
         self.radioGroup.addButton(self.radio4, 3)
-        self.line = QLineEdit(self)
         self.vbox = QVBoxLayout()
         self.qbox.addWidget(self.label)
         self.qbox.addWidget(self.radio1)
@@ -52,8 +61,8 @@ class Interface(QWidget):
         self.qbox.addWidget(self.radio3)
         self.qbox.addWidget(self.radio4)
         self.qbox.addWidget(self.line)
-        self.line.setFixedWidth(200)
         self.qbox.addWidget(self.testsComboBox)
+        # self.qbox.addWidget(self.edit)
         self.qbox.addWidget(self.startButton)
         self.vbox.addStretch(1)
         self.vbox.addLayout(self.qbox)
@@ -61,6 +70,7 @@ class Interface(QWidget):
         self.vbox.addLayout(self.hbox)
         self.vbox.setContentsMargins(30,30,30,30)
         self.setLayout(self.vbox)
+        self.qbox.addWidget(self.resultLabel)
         self.label.hide()
         self.radio1.hide()
         self.radio2.hide()
@@ -144,11 +154,11 @@ class Interface(QWidget):
         # self.skip_button_handel()
 
     def answer_button_handler(self):
-        if(self.radio1.isChecked() or self.radio2.isChecked() or self.radio3.isChecked() or self.radio4.isChecked() or (self.line.text() != '')):
-            if (self.line.text() != ''):
-                self.ticket.set_answer(self.line.text())
-                print(self.line.text())
-                print("LINE Written - ", self.line.text())
+        if(self.radio1.isChecked() or self.radio2.isChecked() or self.radio3.isChecked() or self.radio4.isChecked() or (self.line.toPlainText() != '')):
+            if (self.line.toPlainText() != ''):
+                self.ticket.set_answer(self.line.toPlainText())
+                print(self.line.toPlainText())
+                print("LINE Written - ", self.line.toPlainText())
                 self.line.clear()
             elif(self.radio1.isChecked()):
                 self.ticket.set_answer(self.radio1.text())
@@ -184,10 +194,8 @@ class Interface(QWidget):
         self.endButton.hide()
         self.timeLeftTitle.hide()
         self.timeLeft.hide()
-        self.resultLabel = QLabel()
         resultString = "Your result is "+ str(self.ticket.get_result())+" of 10!"
         self.resultLabel.setText(resultString)
-        self.qbox.addWidget(self.resultLabel)
         qApp.processEvents()
         self.update()
 
