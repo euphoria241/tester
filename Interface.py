@@ -32,9 +32,9 @@ class Interface(QWidget):
         self.radio2 = QRadioButton()
         self.radio3 = QRadioButton()
         self.radio4 = QRadioButton()
-        self.line = QTextEdit()
-        self.line.setFixedWidth(400)
-        self.line.setFixedHeight(100)
+        self.asnwerField = QTextEdit()
+        self.asnwerField.setFixedWidth(400)
+        self.asnwerField.setFixedHeight(100)
         self.timeLeftTitle = QLabel("Оставшееся время: ")
         self.timeLeft = QLabel()
         self.radioGroup = QButtonGroup()
@@ -58,6 +58,8 @@ class Interface(QWidget):
         self.bottomLayout.addWidget(self.endButton)
 
         # layout for test questions
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.on_timer)
         self.questionsLayout= QVBoxLayout()
         self.radioGroup.addButton(self.radio1, 0)
         self.radioGroup.addButton(self.radio2, 1)
@@ -73,7 +75,7 @@ class Interface(QWidget):
         self.questionsLayout.addWidget(self.groupLine)
         self.nameLine.clearFocus()
         self.groupLine.clearFocus()
-        self.questionsLayout.addWidget(self.line)
+        self.questionsLayout.addWidget(self.asnwerField)
         self.questionsLayout.addWidget(self.testsComboBox)
         self.questionsLayout.addWidget(self.startButton)
         self.questionsLayout.addWidget(self.resultLabel)
@@ -92,7 +94,7 @@ class Interface(QWidget):
         self.radio2.hide()
         self.radio3.hide()
         self.radio4.hide()
-        self.line.hide()
+        self.asnwerField.hide()
         self.answerButton.hide()
         self.skipButton.hide()
         self.endButton.hide()
@@ -135,6 +137,10 @@ class Interface(QWidget):
     def start_button_handler(self):
 
         self.ticket = TestTicket(self.testsComboBox.currentText().split(' ')[0],self.nameLine.text(),self.groupLine.text())
+        self.nameLine.clear()
+        self.nameLine.hide()
+        self.groupLine.clear()
+        self.groupLine.hide()
         self.testTime = self.ticket.get_test_time()
         self.startButton.hide()
         self.testsComboBox.hide()
@@ -144,8 +150,6 @@ class Interface(QWidget):
         self.timeLeft.show()
         self.timeLeftTitle.show()
         self.timeLeft.setText(str(self.testTime // 60) + ":" + str(self.testTime % 60) + "0")
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.on_timer)
         self.timer.start(1000)
         qApp.processEvents()
         self.update()
@@ -168,7 +172,7 @@ class Interface(QWidget):
         elif len(firstQuestion.options) == 0:
             self.label.setText(firstQuestion.title)
             self.label.show()
-            self.line.show()
+            self.asnwerField.show()
             qApp.processEvents()
             self.update()
 
@@ -178,12 +182,12 @@ class Interface(QWidget):
         # self.skip_button_handel()
 
     def answer_button_handler(self):
-        if(self.radio1.isChecked() or self.radio2.isChecked() or self.radio3.isChecked() or self.radio4.isChecked() or (self.line.toPlainText() != '')):
-            if (self.line.toPlainText() != ''):
-                self.ticket.set_answer(self.line.toPlainText())
-                print(self.line.toPlainText())
-                print("LINE Written - ", self.line.toPlainText())
-                self.line.clear()
+        if(self.radio1.isChecked() or self.radio2.isChecked() or self.radio3.isChecked() or self.radio4.isChecked() or (self.asnwerField.toPlainText() != '')):
+            if (self.asnwerField.toPlainText() != ''):
+                self.ticket.set_answer(self.asnwerField.toPlainText())
+                print(self.asnwerField.toPlainText())
+                print("LINE Written - ", self.asnwerField.toPlainText())
+                self.asnwerField.clear()
             elif(self.radio1.isChecked()):
                 self.ticket.set_answer(self.radio1.text())
                 print("BUT1 Written - ", self.radio1.text())
@@ -207,12 +211,14 @@ class Interface(QWidget):
             msg.exec()
 
     def end_test(self):
+        self.timer.stop()
         self.label.hide()
         self.radio1.hide()
         self.radio2.hide()
         self.radio3.hide()
         self.radio4.hide()
-        self.line.hide()
+        self.asnwerField.hide()
+        self.asnwerField.clear()
         self.skipButton.hide()
         self.answerButton.hide()
         self.endButton.hide()
@@ -236,9 +242,9 @@ class Interface(QWidget):
             self.radio2.hide()
             self.radio3.hide()
             self.radio4.hide()
-            self.line.hide()
+            self.asnwerField.hide()
             #clear everything
-            self.line.clear()
+            self.asnwerField.clear()
             self.radioGroup.setExclusive(False)
             self.radio1.setChecked(False)
             self.radio2.setChecked(False)
@@ -263,7 +269,7 @@ class Interface(QWidget):
             elif len(tempQuestion.options) == 0:
                 self.label.setText(tempQuestion.title)
                 self.label.show()
-                self.line.show()
+                self.asnwerField.show()
             qApp.processEvents()
             self.update()
         elif tempQuestion == -1:
