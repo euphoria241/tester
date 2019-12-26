@@ -5,13 +5,13 @@ from Question import Question
 
 class TestTicket:
 
-    def __init__(self, test_id):
+    def __init__(self, testId:int, studentName:str, studentGroup:str):
         self.questions = []
-        self.topicId = test_id
+        self.topicId = testId
         self.generate_questions()
     
     def generate_questions(self):
-        connection = sqlite3.connect("test.db")
+        connection = sqlite3.connect('file:database/test.db?mode=rw', uri=True)
         cursor = connection.cursor()
         request = "select * from questions where test_id =?"
         cursor.execute(request, (self.topicId,))
@@ -51,7 +51,7 @@ class TestTicket:
             return -1
 
     def get_test_time(self):
-        connection = sqlite3.connect("test.db")
+        connection = sqlite3.connect('file:database/test.db?mode=rw', uri=True)
         cursor = connection.cursor()
         request = "select time from tests where test_id =?"
         cursor.execute(request, (self.topicId,))

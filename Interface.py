@@ -2,6 +2,7 @@
 import sys
 import time
 import sqlite3
+import string
 from PyQt5.QtWidgets import (QWidget,QTextEdit, QPushButton, QHBoxLayout, QVBoxLayout, QApplication, QLabel, QRadioButton, QProgressBar, QLineEdit,qApp, QComboBox, QButtonGroup,QMessageBox)
 from PyQt5.QtCore import QTimer
 from TestTicket import TestTicket
@@ -15,6 +16,13 @@ class Interface(QWidget):
     def initUI(self):
         # starting screen
         self.startButton = QPushButton("Начать тест")
+        self.startButton.setDisabled(True)
+        self.nameLine = QLineEdit()
+        self.groupLine = QLineEdit()
+        self.nameLine.setPlaceholderText("Введите свое имя и фамилию...")
+        self.groupLine.setPlaceholderText("Введите группу...")
+        self.nameLine.textChanged.connect(self.disableStartButton)
+        self.groupLine.textChanged.connect(self.disableStartButton)
         self.get_tests()
         self.startButton.clicked.connect(self.start_button_handler)
 
@@ -29,6 +37,7 @@ class Interface(QWidget):
         self.line.setFixedHeight(100)
         self.timeLeftTitle = QLabel("Оставшееся время: ")
         self.timeLeft = QLabel()
+        self.radioGroup = QButtonGroup()
         self.answerButton = QPushButton("Ответить")
         self.skipButton = QPushButton("Пропустить")
         self.endButton = QPushButton("Завершить")
@@ -39,38 +48,45 @@ class Interface(QWidget):
         # final screen
         self.resultLabel = QLabel()
 
-        self.hbox = QHBoxLayout()
-        
-        self.hbox.addWidget(self.timeLeftTitle)
-        self.hbox.addWidget(self.timeLeft)
-        self.hbox.addStretch(1)
-        self.hbox.addWidget(self.skipButton)
-        self.hbox.addWidget(self.answerButton)
-        self.hbox.addWidget(self.endButton)
-        self.qbox= QVBoxLayout()
-        
-        self.radioGroup = QButtonGroup()
+        #bottom layout with buttons
+        self.bottomLayout = QHBoxLayout()
+        self.bottomLayout.addWidget(self.timeLeftTitle)
+        self.bottomLayout.addWidget(self.timeLeft)
+        self.bottomLayout.addStretch(1)
+        self.bottomLayout.addWidget(self.skipButton)
+        self.bottomLayout.addWidget(self.answerButton)
+        self.bottomLayout.addWidget(self.endButton)
+
+        # layout for test questions
+        self.questionsLayout= QVBoxLayout()
         self.radioGroup.addButton(self.radio1, 0)
         self.radioGroup.addButton(self.radio2, 1)
         self.radioGroup.addButton(self.radio3, 2)
         self.radioGroup.addButton(self.radio4, 3)
-        self.vbox = QVBoxLayout()
-        self.qbox.addWidget(self.label)
-        self.qbox.addWidget(self.radio1)
-        self.qbox.addWidget(self.radio2)
-        self.qbox.addWidget(self.radio3)
-        self.qbox.addWidget(self.radio4)
-        self.qbox.addWidget(self.line)
-        self.qbox.addWidget(self.testsComboBox)
-        # self.qbox.addWidget(self.edit)
-        self.qbox.addWidget(self.startButton)
-        self.vbox.addStretch(1)
-        self.vbox.addLayout(self.qbox)
-        self.vbox.addStretch(1)
-        self.vbox.addLayout(self.hbox)
-        self.vbox.setContentsMargins(30,30,30,30)
-        self.setLayout(self.vbox)
-        self.qbox.addWidget(self.resultLabel)
+        
+        self.questionsLayout.addWidget(self.label)
+        self.questionsLayout.addWidget(self.radio1)
+        self.questionsLayout.addWidget(self.radio2)
+        self.questionsLayout.addWidget(self.radio3)
+        self.questionsLayout.addWidget(self.radio4)
+        self.questionsLayout.addWidget(self.nameLine)
+        self.questionsLayout.addWidget(self.groupLine)
+        self.nameLine.clearFocus()
+        self.groupLine.clearFocus()
+        self.questionsLayout.addWidget(self.line)
+        self.questionsLayout.addWidget(self.testsComboBox)
+        self.questionsLayout.addWidget(self.startButton)
+        self.questionsLayout.addWidget(self.resultLabel)
+
+        # main layout of widget
+        self.mainLayout = QVBoxLayout()
+        self.mainLayout.addStretch(1)
+        self.mainLayout.addLayout(self.questionsLayout)
+        self.mainLayout.addStretch(1)
+        self.mainLayout.addLayout(self.bottomLayout)
+        self.mainLayout.setContentsMargins(30,30,30,30)
+        self.setLayout(self.mainLayout)
+        
         self.label.hide()
         self.radio1.hide()
         self.radio2.hide()
@@ -82,6 +98,12 @@ class Interface(QWidget):
         self.endButton.hide()
         self.timeLeftTitle.hide()
         self.timeLeft.hide()
+
+    def disableStartButton(self):
+        if len(self.nameLine.text()) > 0 and len(self.groupLine.text()) > 0:
+            self.startButton.setDisabled(False)
+        else:
+            self.startButton.setDisabled(True)
 
     def on_timer(self):
         self.testTime -= 1
@@ -96,7 +118,7 @@ class Interface(QWidget):
             self.end_test()
 
     def get_tests(self):
-        connection = sqlite3.connect("test.db")
+        connection = sqlite3.connect('file:database/test.db?mode=rw', uri=True)
         cursor = connection.cursor()
         request = "select * from tests"
         cursor.execute(request)
@@ -111,7 +133,8 @@ class Interface(QWidget):
         pass
 
     def start_button_handler(self):
-        self.ticket = TestTicket(self.testsComboBox.currentText().split(' ')[0])
+
+        self.ticket = TestTicket(self.testsComboBox.currentText().split(' ')[0],self.nameLine.text(),self.groupLine.text())
         self.testTime = self.ticket.get_test_time()
         self.startButton.hide()
         self.testsComboBox.hide()
@@ -151,6 +174,7 @@ class Interface(QWidget):
 
         self.update()
         qApp.processEvents()
+
         # self.skip_button_handel()
 
     def answer_button_handler(self):
@@ -220,7 +244,7 @@ class Interface(QWidget):
             self.radio2.setChecked(False)
             self.radio3.setChecked(False)
             self.radio4.setChecked(False)
-            self.radioGroup.setExclusive(True) 
+            self.radioGroup.setExclusive(True)
             #print current result
             print("Current result is - ", self.ticket.get_result())  
             #fill form with new question
