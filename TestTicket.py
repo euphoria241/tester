@@ -1,6 +1,6 @@
-import json
 import random
 import sqlite3
+from datetime import datetime
 from Question import Question
 
 class TestTicket:
@@ -9,6 +9,10 @@ class TestTicket:
         self.questions = []
         self.topicId = testId
         self.generate_questions()
+        self.studentName = studentName
+        self.studentGroup = studentGroup
+        print(self.studentGroup)
+        print(self.studentName)
     
     def generate_questions(self):
         connection = sqlite3.connect('file:database/test.db?mode=rw', uri=True)
@@ -16,7 +20,10 @@ class TestTicket:
         request = "select * from questions where test_id =?"
         cursor.execute(request, (self.topicId,))
         fetched_questions = cursor.fetchall()
-        questionsList = random.sample(fetched_questions, k=10)
+        if len(fetched_questions) > 9:
+            questionsList = random.sample(fetched_questions, k=10)
+        else:
+            questionsList = random.sample(fetched_questions, k=len(fetched_questions))
 
         numerator = 1
         for question in questionsList:
@@ -81,3 +88,12 @@ class TestTicket:
             if question.actualAnswer == question.rightAnswer:
                 result += 1
         return result
+    def save_attempt(self):
+        connection = sqlite3.connect('file:database/test.db?mode=rw', uri=True)
+        cursor = connection.cursor()
+        insert_query = "INSERT INTO attempts(student_name,student_group,score,date,test_id) VALUES(?,?,?,?,?)"
+        dataTuple = (self.studentName,self.studentGroup,self.get_result(),str(datetime.now()),self.topicId)
+        cursor.execute(insert_query, dataTuple)
+        connection.commit()
+        cursor.close()
+        connection.close()

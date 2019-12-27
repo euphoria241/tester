@@ -212,6 +212,7 @@ class Interface(QWidget):
 
     def end_test(self):
         self.timer.stop()
+        self.ticket.save_attempt()
         self.label.hide()
         self.radio1.hide()
         self.radio2.hide()
@@ -224,7 +225,7 @@ class Interface(QWidget):
         self.endButton.hide()
         self.timeLeftTitle.hide()
         self.timeLeft.hide()
-        resultString = "Your result is "+ str(self.ticket.get_result())+" of 10!"
+        resultString = "Your result is "+ str(self.ticket.get_result())+" of " + str(len(self.ticket.questions)) + "!"
         self.resultLabel.setText(resultString)
         qApp.processEvents()
         self.update()
