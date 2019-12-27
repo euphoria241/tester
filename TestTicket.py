@@ -11,8 +11,6 @@ class TestTicket:
         self.generate_questions()
         self.studentName = studentName
         self.studentGroup = studentGroup
-        print(self.studentGroup)
-        print(self.studentName)
     
     def generate_questions(self):
         connection = sqlite3.connect('file:database/encrypted_test.db?mode=rw', uri=True)

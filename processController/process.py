@@ -22,7 +22,7 @@ class CheckBox(object):
         return c
     def blacklist_check(self):
         "Список запрещенных процессов"
-        f = open('blackList.conf', "r")
+        f = open('processController/blackList.conf', "r")
         l = [line.strip() for line in f]
         f.close()
         return l
@@ -42,6 +42,3 @@ class CheckBox(object):
         if self.kol_blacklist==1:
             return 1
         return 0
-
-c = CheckBox()
-print(c.check())

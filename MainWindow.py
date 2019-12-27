@@ -14,7 +14,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('Тесты Python')
         self.setFixedSize(600,500)
         # self.setGeometry(300, 300, 500, 450)
-        self.show()
+        self.show() 
 
 if __name__ == '__main__':
 

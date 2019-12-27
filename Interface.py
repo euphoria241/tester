@@ -1,16 +1,15 @@
 # This Python file uses the following encoding: utf-8
-import sys
-import time
 from pysqlcipher3 import dbapi2 as sqlite3
-import string
-from PyQt5.QtWidgets import (QWidget,QTextEdit, QPushButton, QHBoxLayout, QVBoxLayout, QApplication, QLabel, QRadioButton, QProgressBar, QLineEdit,qApp, QComboBox, QButtonGroup,QMessageBox)
+from PyQt5.QtWidgets import (QWidget,QTextEdit, QPushButton, QHBoxLayout, QVBoxLayout, QApplication, QLabel, QRadioButton, QLineEdit,qApp, QComboBox, QButtonGroup,QMessageBox)
 from PyQt5.QtCore import QTimer
 from TestTicket import TestTicket
+from processController.process import CheckBox
 
 class Interface(QWidget):
 
     def __init__(self):
         super().__init__()
+        self.processController = CheckBox()
         self.initUI()
 
     def initUI(self):
@@ -114,6 +113,8 @@ class Interface(QWidget):
 
     def on_timer(self):
         self.testTime -= 1
+        if self.testTime % self.checkTimeout == 0:
+            self.processController.check()
         minutes = self.testTime // 60
         seconds = self.testTime % 60
         if len(str(seconds)) != 1:
@@ -138,6 +139,8 @@ class Interface(QWidget):
             self.testsComboBox.addItem(str(test[0]) + " " + test[1] + " Семестр " + str(test[2]) + " Часть " + str(test[3]))
 
     def start_button_handler(self):
+        self.processController.check()
+        self.checkTimeout = 30
         self.ticket = TestTicket(self.testsComboBox.currentText().split(' ')[0],self.nameLine.text(),self.groupLine.text())
         self.nameLine.clear()
         self.nameLine.hide()
