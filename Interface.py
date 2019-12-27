@@ -1,7 +1,7 @@
 # This Python file uses the following encoding: utf-8
 import sys
 import time
-import sqlite3
+from pysqlcipher3 import dbapi2 as sqlite3
 import string
 from PyQt5.QtWidgets import (QWidget,QTextEdit, QPushButton, QHBoxLayout, QVBoxLayout, QApplication, QLabel, QRadioButton, QProgressBar, QLineEdit,qApp, QComboBox, QButtonGroup,QMessageBox)
 from PyQt5.QtCore import QTimer
@@ -47,6 +47,8 @@ class Interface(QWidget):
         
         # final screen
         self.resultLabel = QLabel()
+        self.restartButton = QPushButton("На главный экран")
+        self.restartButton.clicked.connect(self.restart_button_handler)
 
         #bottom layout with buttons
         self.bottomLayout = QHBoxLayout()
@@ -56,6 +58,7 @@ class Interface(QWidget):
         self.bottomLayout.addWidget(self.skipButton)
         self.bottomLayout.addWidget(self.answerButton)
         self.bottomLayout.addWidget(self.endButton)
+        self.bottomLayout.addWidget(self.restartButton)
 
         # layout for test questions
         self.timer = QTimer()
@@ -98,8 +101,10 @@ class Interface(QWidget):
         self.answerButton.hide()
         self.skipButton.hide()
         self.endButton.hide()
+        self.restartButton.hide()
         self.timeLeftTitle.hide()
         self.timeLeft.hide()
+        self.resultLabel.hide()
 
     def disableStartButton(self):
         if len(self.nameLine.text()) > 0 and len(self.groupLine.text()) > 0:
@@ -120,8 +125,9 @@ class Interface(QWidget):
             self.end_test()
 
     def get_tests(self):
-        connection = sqlite3.connect('file:database/test.db?mode=rw', uri=True)
+        connection = sqlite3.connect('file:database/encrypted_test.db?mode=rw', uri=True)
         cursor = connection.cursor()
+        cursor.execute("PRAGMA key='DMEpython'")
         request = "select * from tests"
         cursor.execute(request)
         fetched_tests = cursor.fetchall()
@@ -131,11 +137,7 @@ class Interface(QWidget):
         for test in fetched_tests:
             self.testsComboBox.addItem(str(test[0]) + " " + test[1] + " Семестр " + str(test[2]) + " Часть " + str(test[3]))
 
-    def hide_everything(self):
-        pass
-
     def start_button_handler(self):
-
         self.ticket = TestTicket(self.testsComboBox.currentText().split(' ')[0],self.nameLine.text(),self.groupLine.text())
         self.nameLine.clear()
         self.nameLine.hide()
@@ -214,6 +216,8 @@ class Interface(QWidget):
         self.timer.stop()
         self.ticket.save_attempt()
         self.label.hide()
+        self.resultLabel.show()
+        self.restartButton.show()
         self.radio1.hide()
         self.radio2.hide()
         self.radio3.hide()
@@ -225,8 +229,9 @@ class Interface(QWidget):
         self.endButton.hide()
         self.timeLeftTitle.hide()
         self.timeLeft.hide()
-        resultString = "Your result is "+ str(self.ticket.get_result())+" of " + str(len(self.ticket.questions)) + "!"
+        resultString = "Ваш результат "+ str(self.ticket.get_result())+" из " + str(len(self.ticket.questions)) + "!"
         self.resultLabel.setText(resultString)
+        
         qApp.processEvents()
         self.update()
 
@@ -275,3 +280,13 @@ class Interface(QWidget):
             self.update()
         elif tempQuestion == -1:
             self.end_test()
+
+    def restart_button_handler(self):
+        self.resultLabel.hide()
+        self.restartButton.hide()
+        self.nameLine.show()
+        self.groupLine.show()
+        self.startButton.show()
+        self.testsComboBox.show()
+        qApp.processEvents()
+        self.update()
