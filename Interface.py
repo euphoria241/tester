@@ -1,5 +1,5 @@
 # This Python file uses the following encoding: utf-8
-from pysqlcipher3 import dbapi2 as sqlite3
+import sqlite3
 from PyQt5.QtWidgets import (QWidget,QTextEdit, QPushButton, QHBoxLayout, QVBoxLayout, QApplication, QLabel, QRadioButton, QLineEdit,qApp, QComboBox, QButtonGroup,QMessageBox)
 from PyQt5.QtCore import QTimer
 from TestTicket import TestTicket
@@ -126,9 +126,8 @@ class Interface(QWidget):
             self.end_test()
 
     def get_tests(self):
-        connection = sqlite3.connect('file:database/encrypted_test.db?mode=rw', uri=True)
+        connection = sqlite3.connect('file:database/test.db?mode=rw', uri=True)
         cursor = connection.cursor()
-        cursor.execute("PRAGMA key='DMEpython'")
         request = "select * from tests"
         cursor.execute(request)
         fetched_tests = cursor.fetchall()

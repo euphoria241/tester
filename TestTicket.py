@@ -1,5 +1,5 @@
 import random
-from pysqlcipher3 import dbapi2 as sqlite3
+import sqlite3
 from datetime import datetime
 from Question import Question
 
@@ -13,9 +13,8 @@ class TestTicket:
         self.studentGroup = studentGroup
     
     def generate_questions(self):
-        connection = sqlite3.connect('file:database/encrypted_test.db?mode=rw', uri=True)
+        connection = sqlite3.connect('file:database/test.db?mode=rw', uri=True)
         cursor = connection.cursor()
-        cursor.execute("PRAGMA key='DMEpython'")
         request = "select * from questions where test_id =?"
         cursor.execute(request, (self.topicId,))
         fetched_questions = cursor.fetchall()
@@ -57,9 +56,8 @@ class TestTicket:
             return -1
 
     def get_test_time(self):
-        connection = sqlite3.connect('file:database/encrypted_test.db?mode=rw', uri=True)
+        connection = sqlite3.connect('file:database/test.db?mode=rw', uri=True)
         cursor = connection.cursor()
-        cursor.execute("PRAGMA key='DMEpython'")
         request = "select time from tests where test_id =?"
         cursor.execute(request, (self.topicId,))
         fetched_time = cursor.fetchone()
@@ -88,9 +86,8 @@ class TestTicket:
                 result += 1
         return result
     def save_attempt(self):
-        connection = sqlite3.connect('file:database/encrypted_test.db?mode=rw', uri=True)
+        connection = sqlite3.connect('file:database/test.db?mode=rw', uri=True)
         cursor = connection.cursor()
-        cursor.execute("PRAGMA key='DMEpython'")
         insert_query = "INSERT INTO attempts(student_name,student_group,score,date,test_id) VALUES(?,?,?,?,?)"
         dataTuple = (self.studentName,self.studentGroup,self.get_result(),datetime.now().strftime("%d/%m/%Y %H:%M:%S"),self.topicId)
         cursor.execute(insert_query, dataTuple)
