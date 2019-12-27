@@ -1,3 +1,3 @@
 # tester
 
-# Python tests from students
+# Python tests for students
